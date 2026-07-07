@@ -6,6 +6,7 @@ import './App.css';
 function App() {
   const [items, setItems] = useState([]);
   const [itemToEdit, setItemToEdit] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
 
   useEffect(() => {
     const storedItems = JSON.parse(localStorage.getItem('items')) || [];
@@ -21,7 +22,7 @@ function App() {
       setItems(items.map(item => item.id === itemToEdit.id ? { ...item, value } : item));
       setItemToEdit(null);
     } else {
-      setItems([...items, { id: Date.now(), value }]);
+      setItems([...items, { id: Date.now(), value, completado: false }]);
     }
   };
 
@@ -36,13 +37,49 @@ function App() {
     setItemToEdit(item);
   };
 
+  const toggleCompletado = (id) => {
+    setItems(items.map(item =>
+      item.id === id ? { ...item, completado: !item.completado } : item
+    ));
+  };
+
+  const deleteAll = () => {
+    if (items.length === 0) return;
+    const confirmar = window.confirm('¿Seguro que quieres borrar TODOS los elementos?');
+    if (confirmar) {
+      setItems([]);
+    }
+  };
+
+  const itemsFiltrados = items.filter(item =>
+    item.value.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
   return (
     <div className="app">
       <div className="card">
         <h1>CRUD con LocalStorage</h1>
         <Form addOrUpdateItem={addOrUpdateItem} itemToEdit={itemToEdit} />
         <p className="contador">Total: {items.length}</p>
-        <List items={items} deleteItem={deleteItem} editItem={editItem} />
+
+        <input
+          className="input-buscador"
+          type="text"
+          placeholder="Buscar..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+
+        <List
+          items={itemsFiltrados}
+          deleteItem={deleteItem}
+          editItem={editItem}
+          toggleCompletado={toggleCompletado}
+        />
+
+        <button className="btn-borrar-todo" onClick={deleteAll}>
+          Borrar todo
+        </button>
       </div>
     </div>
   );
